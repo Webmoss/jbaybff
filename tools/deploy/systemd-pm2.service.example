@@ -1,0 +1,34 @@
+# =============================================================================
+# systemd unit example — only relevant if you have root on the Xneelo box
+# (VPS / Cloud Hosting). On shared cPanel, use `pm2 startup` instead, which
+# generates a per-user crontab entry that achieves the same thing.
+#
+# Save as /etc/systemd/system/pm2-jbaybff.service, then:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable pm2-jbaybff
+#   sudo systemctl start pm2-jbaybff
+# =============================================================================
+
+[Unit]
+Description=PM2 process manager for JBay BFF
+Documentation=https://pm2.keymetrics.io/
+After=network.target mysql.service
+
+[Service]
+Type=forking
+User=jbaybff
+LimitNOFILE=infinity
+LimitNPROC=infinity
+LimitCORE=infinity
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/home/jbaybff/.local/share/pnpm
+Environment=PM2_HOME=/home/jbaybff/.pm2
+PIDFile=/home/jbaybff/.pm2/pm2.pid
+Restart=on-failure
+RestartSec=10s
+
+ExecStart=/home/jbaybff/.local/share/pnpm/pm2 resurrect
+ExecReload=/home/jbaybff/.local/share/pnpm/pm2 reload all
+ExecStop=/home/jbaybff/.local/share/pnpm/pm2 kill
+
+[Install]
+WantedBy=multi-user.target

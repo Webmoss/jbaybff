@@ -1,0 +1,44 @@
+# =============================================================================
+# Apache .htaccess reverse proxy — Xneelo cPanel shared hosting
+# -----------------------------------------------------------------------------
+# Use this when you're on a *shared* cPanel plan and don't have Nginx access.
+# Place this file in `public_html/` (or the document root configured for the
+# domain). Requires `mod_proxy` and `mod_proxy_http` — both enabled on Xneelo
+# cPanel by default.
+#
+# IMPORTANT: cPanel's "Setup Node.js App" UI auto-generates an .htaccess that
+# proxies to its own loader. If you choose to manage Node yourself with PM2
+# (recommended for clustering), DISABLE the cPanel-generated Node app first
+# so its .htaccess doesn't conflict with this one.
+# =============================================================================
+
+# --- Public site → port 3000 -------------------------------------------------
+RewriteEngine On
+
+# Force HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Reverse-proxy everything to the PM2-managed Next.js process.
+RewriteRule ^_next/static/(.*)$ http://127.0.0.1:3000/_next/static/$1 [P,L]
+RewriteRule ^api/(.*)$ http://127.0.0.1:3000/api/$1 [P,L]
+RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+
+# Long-cache Next static assets
+<IfModule mod_headers.c>
+    <FilesMatch "^_next/static/">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+# =============================================================================
+# For the admin subdomain (admin.jbaybff.org.za) create a SECOND .htaccess in
+# the subdomain's docroot with port 3001 instead of 3000:
+#
+#   RewriteRule ^(.*)$ http://127.0.0.1:3001/$1 [P,L]
+#
+# And ideally restrict by IP:
+#   <RequireAll>
+#       Require ip 102.x.x.x   # office IP
+#   </RequireAll>
+# =============================================================================
