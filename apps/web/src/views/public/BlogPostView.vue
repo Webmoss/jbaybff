@@ -25,10 +25,35 @@ async function load(slug: string) {
   missing.value = false
   try {
     post.value = (await api.get<Detail>(`/blog/public/posts/${encodeURIComponent(slug)}`)).data
+    const canonical = `https://www.jbaybff.org.za/blog/${encodeURIComponent(slug)}`
     useHead({
       title: post.value.metaTitle ?? post.value.title ?? 'Journal',
       meta: [
         ...(post.value.metaDescription ? [{ name: 'description', content: post.value.metaDescription }] : []),
+        { property: 'og:type', content: 'article' },
+        { property: 'og:title', content: post.value.metaTitle ?? post.value.title ?? 'Journal' },
+        ...(post.value.metaDescription ? [{ property: 'og:description', content: post.value.metaDescription }] : []),
+        { property: 'og:url', content: canonical },
+        { name: 'twitter:title', content: post.value.metaTitle ?? post.value.title ?? 'Journal' },
+        ...(post.value.metaDescription ? [{ name: 'twitter:description', content: post.value.metaDescription }] : []),
+      ],
+      link: [{ rel: 'canonical', href: canonical }],
+      script: [
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Article',
+            headline: post.value.title,
+            description: post.value.metaDescription ?? post.value.excerpt ?? undefined,
+            url: canonical,
+            mainEntityOfPage: canonical,
+            publisher: {
+              '@type': 'Organization',
+              name: 'JBay BFF',
+            },
+          }),
+        } as unknown as never,
       ],
     })
   } catch {

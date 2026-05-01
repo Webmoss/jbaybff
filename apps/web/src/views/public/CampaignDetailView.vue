@@ -34,9 +34,31 @@ async function load(slug: string) {
   try {
     detail.value = (await api.get<Campaign>(`/campaigns/public/detail/${encodeURIComponent(slug)}`)).data
     trackEvent('campaign_viewed', { slug })
+    const canonical = `https://www.jbaybff.org.za/campaigns/${encodeURIComponent(slug)}`
     useHead({
       title: () => `${detail.value?.title ?? 'Campaign'} · JBay Blue Flag`,
-      meta: () => [{ name: 'description', content: 'Campaign stewardship in Jeffreys Bay.' }],
+      link: () => [{ rel: 'canonical', href: canonical }],
+      meta: () => [
+        { name: 'description', content: 'Campaign stewardship in Jeffreys Bay.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:title', content: `${detail.value?.title ?? 'Campaign'} · JBay Blue Flag` },
+        { property: 'og:description', content: 'Campaign stewardship in Jeffreys Bay.' },
+        { property: 'og:url', content: canonical },
+        { name: 'twitter:title', content: `${detail.value?.title ?? 'Campaign'} · JBay Blue Flag` },
+        { name: 'twitter:description', content: 'Campaign stewardship in Jeffreys Bay.' },
+      ],
+      script: () => [
+        {
+          type: 'application/ld+json',
+          innerHTML: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebPage',
+            name: detail.value?.title ?? 'Campaign',
+            description: detail.value?.description?.slice(0, 180) ?? 'Campaign stewardship in Jeffreys Bay.',
+            url: canonical,
+          }),
+        } as unknown as never,
+      ],
     })
   } catch {
     missing.value = true

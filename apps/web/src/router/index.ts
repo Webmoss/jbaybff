@@ -70,6 +70,16 @@ export const router = createRouter({
           component: () => import('@/views/public/PartnershipsView.vue'),
         },
         {
+          path: 'shop',
+          name: 'shop',
+          component: () => import('@/views/public/ShopView.vue'),
+        },
+        {
+          path: 'shop/:slug',
+          name: 'shop-detail',
+          component: () => import('@/views/public/ShopProductView.vue'),
+        },
+        {
           path: 'actions',
           name: 'actions',
           component: () => import('@/views/public/ActionsView.vue'),
@@ -88,6 +98,11 @@ export const router = createRouter({
           path: 'donate/thanks',
           name: 'donate-thanks',
           component: () => import('@/views/public/DonateThanksView.vue'),
+        },
+        {
+          path: 'shop/thanks',
+          name: 'shop-thanks',
+          component: () => import('@/views/public/ShopThanksView.vue'),
         },
       ],
     },
@@ -175,9 +190,19 @@ export const router = createRouter({
           component: () => import('@/views/admin/AdminPartnershipsView.vue'),
         },
         {
+          path: 'retention',
+          name: 'admin-retention',
+          component: () => import('@/views/admin/AdminRetentionView.vue'),
+        },
+        {
           path: 'impact',
           name: 'admin-impact',
           component: () => import('@/views/admin/AdminImpactView.vue'),
+        },
+        {
+          path: 'shop',
+          name: 'admin-shop',
+          component: () => import('@/views/admin/AdminShopView.vue'),
         },
       ],
     },

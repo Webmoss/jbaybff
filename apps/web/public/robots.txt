@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /auth
+
+Sitemap: https://www.jbaybff.org.za/api/seo/sitemap.xml

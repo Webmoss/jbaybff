@@ -37,6 +37,7 @@ const exporting = ref(false)
 const exportFrom = ref('')
 const exportTo = ref('')
 const exportPreset = ref<'custom' | 'today' | 'this-month' | 'last-month' | 'last-30' | 'all-time'>('all-time')
+const controlFocusClass = 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bff-deep/40'
 
 async function load() {
   const [rowsRes, summaryRes] = await Promise.all([
@@ -51,6 +52,7 @@ const filteredRows = computed(() => rows.value.filter((r) => statusFilter.value 
 const allFilteredSelected = computed(
   () => filteredRows.value.length > 0 && filteredRows.value.every((r) => selectedIds.value.includes(r.id)),
 )
+const isExportRangeInvalid = computed(() => Boolean(exportFrom.value && exportTo.value && exportFrom.value > exportTo.value))
 const exportRangeLabel = computed(() => {
   if (!exportFrom.value && !exportTo.value) return 'All time'
   if (exportFrom.value && exportTo.value) return `${exportFrom.value} to ${exportTo.value}`
@@ -127,7 +129,7 @@ async function confirmBulkUpdate() {
 }
 
 async function exportCsv() {
-  if (exportFrom.value && exportTo.value && exportFrom.value > exportTo.value) {
+  if (isExportRangeInvalid.value) {
     actionNotice.value = 'Export range is invalid: "From" must be before "To".'
     return
   }
@@ -260,25 +262,51 @@ onMounted(() => void load())
           <h2 class="text-sm font-semibold text-bff-deep">Export reports</h2>
           <p class="mt-1 text-xs text-bff-blue-grey">Download partnership inquiries for a preset or custom date range.</p>
         </div>
-        <button type="button" class="rounded-lg border px-4 py-2 text-xs font-semibold" :disabled="exporting" @click="exportCsv">
+        <button
+          type="button"
+          class="rounded-lg border px-4 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          :class="controlFocusClass"
+          :disabled="exporting || isExportRangeInvalid"
+          :title="isExportRangeInvalid ? 'Fix date range to export' : 'Download CSV report'"
+          :aria-describedby="isExportRangeInvalid ? 'export-range-error' : undefined"
+          @click="exportCsv"
+        >
           {{ exporting ? 'Exporting…' : 'Export CSV' }}
         </button>
       </div>
 
       <div class="mt-3 flex flex-wrap gap-2">
-      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="exportPreset === 'today' ? 'bg-bff-deep text-white border-bff-deep' : ''" @click="setTodayRange">Today</button>
-      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="exportPreset === 'this-month' ? 'bg-bff-deep text-white border-bff-deep' : ''" @click="setThisMonthRange">This month</button>
-      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="exportPreset === 'last-month' ? 'bg-bff-deep text-white border-bff-deep' : ''" @click="setLastMonthRange">Last month</button>
-      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="exportPreset === 'last-30' ? 'bg-bff-deep text-white border-bff-deep' : ''" @click="setLast30DaysRange">Last 30 days</button>
-      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="exportPreset === 'all-time' ? 'bg-bff-deep text-white border-bff-deep' : ''" @click="setAllTimeRange">All time</button>
+      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="[controlFocusClass, exportPreset === 'today' ? 'bg-bff-deep text-white border-bff-deep' : '']" @click="setTodayRange">Today</button>
+      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="[controlFocusClass, exportPreset === 'this-month' ? 'bg-bff-deep text-white border-bff-deep' : '']" @click="setThisMonthRange">This month</button>
+      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="[controlFocusClass, exportPreset === 'last-month' ? 'bg-bff-deep text-white border-bff-deep' : '']" @click="setLastMonthRange">Last month</button>
+      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="[controlFocusClass, exportPreset === 'last-30' ? 'bg-bff-deep text-white border-bff-deep' : '']" @click="setLast30DaysRange">Last 30 days</button>
+      <button type="button" class="rounded-full border px-4 py-2 text-xs font-semibold" :class="[controlFocusClass, exportPreset === 'all-time' ? 'bg-bff-deep text-white border-bff-deep' : '']" @click="setAllTimeRange">All time</button>
       </div>
 
       <div class="mt-3 flex flex-wrap items-center gap-2">
         <label class="text-xs font-medium text-bff-blue-grey" for="export-from">From</label>
-        <input id="export-from" v-model="exportFrom" type="date" class="rounded-lg border px-3 py-2 text-xs" @input="onCustomDateEdit" />
+        <input
+          id="export-from"
+          v-model="exportFrom"
+          type="date"
+          class="rounded-lg border px-3 py-2 text-xs"
+          :class="[controlFocusClass, isExportRangeInvalid ? 'border-red-500 bg-red-50 text-red-900' : '']"
+          @input="onCustomDateEdit"
+        />
         <label class="text-xs font-medium text-bff-blue-grey" for="export-to">To</label>
-        <input id="export-to" v-model="exportTo" type="date" class="rounded-lg border px-3 py-2 text-xs" @input="onCustomDateEdit" />
+        <input
+          id="export-to"
+          v-model="exportTo"
+          type="date"
+          class="rounded-lg border px-3 py-2 text-xs"
+          :class="[controlFocusClass, isExportRangeInvalid ? 'border-red-500 bg-red-50 text-red-900' : '']"
+          @input="onCustomDateEdit"
+        />
       </div>
+
+      <p id="export-range-error" v-if="isExportRangeInvalid" class="mt-2 text-xs font-medium text-red-700" role="alert">
+        Invalid range: "From" date must be before or equal to "To" date.
+      </p>
 
       <p class="mt-3 text-xs text-bff-blue-grey">
         Active export range:

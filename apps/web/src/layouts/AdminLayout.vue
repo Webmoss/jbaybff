@@ -11,7 +11,9 @@ const links = (
     ['admin-actions', 'actions', 'Actions'],
     ['admin-events', 'events', 'Events'],
     ['admin-partnerships', 'partnerships', 'Partnerships'],
+    ['admin-retention', 'retention', 'Retention'],
     ['admin-impact', 'impact', 'Impact'],
+    ['admin-shop', 'shop', 'Shop'],
   ] as const
 ).map(([name, path, label]) => ({ name, path, label }))
 </script>

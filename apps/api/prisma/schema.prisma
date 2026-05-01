@@ -26,6 +26,18 @@ enum DonationStatus {
   FAILED
 }
 
+enum RecurringDonationInterval {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+}
+
+enum RecurringDonationStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
 enum ActionType {
   PETITION
   PLEDGE
@@ -68,6 +80,63 @@ enum PartnershipInquiryStatus {
   DECLINED
 }
 
+enum RetentionTriggerKey {
+  WELCOME
+  REENGAGEMENT_30
+  REENGAGEMENT_60
+  REENGAGEMENT_90
+  EVENT_REMINDER_24H
+  WIN_NOTIFICATION
+}
+
+enum RetentionMessageStatus {
+  PENDING
+  SENT
+  FAILED
+  BLOCKED
+}
+
+enum RetentionMessageChannel {
+  EMAIL
+  SMS
+}
+
+enum ShopProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum ShopInventoryStatus {
+  IN_STOCK
+  LOW_STOCK
+  OUT_OF_STOCK
+  PREORDER
+}
+
+enum ShopOrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+enum ShopPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum ShopFulfillmentStatus {
+  UNFULFILLED
+  PACKING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique @db.VarChar(255)
@@ -82,6 +151,8 @@ model User {
   actionSubmissions ActionSubmission[]
   volunteerRsvps VolunteerRsvp[]
   kpiEvents KpiEvent[]
+  shopOrders ShopOrder[]
+  recurringDonationPlans RecurringDonationPlan[]
 }
 
 model SponsorProfile {
@@ -119,6 +190,7 @@ model Campaign {
 
   sponsors CampaignOnSponsors[]
   donations Donation[]
+  recurringDonationPlans RecurringDonationPlan[]
   actions Action[]
   events CommunityEvent[]
   kpiEvents KpiEvent[]
@@ -203,6 +275,36 @@ model Donation {
 
   user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
   campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+}
+
+model RecurringDonationPlan {
+  id           String                    @id @default(cuid())
+  userId       String?                   @map("user_id")
+  donorEmail   String                    @map("donor_email") @db.VarChar(255)
+  donorName    String?                   @map("donor_name") @db.VarChar(255)
+  amount       Decimal                   @db.Decimal(14, 2)
+  currency     String                    @default("ZAR") @db.VarChar(8)
+  interval     RecurringDonationInterval @default(MONTHLY)
+  status       RecurringDonationStatus   @default(ACTIVE)
+  campaignId   String?                   @map("campaign_id")
+  paystackSetupReference String?         @unique @map("paystack_setup_reference") @db.VarChar(255)
+  paystackAuthorizationCode String?      @map("paystack_authorization_code") @db.VarChar(255)
+  paystackCustomerCode String?           @map("paystack_customer_code") @db.VarChar(255)
+  nextChargeAt DateTime?                 @map("next_charge_at")
+  lastChargedAt DateTime?                @map("last_charged_at")
+  lastChargeReference String?            @map("last_charge_reference") @db.VarChar(255)
+  failedChargeAttempts Int               @default(0) @map("failed_charge_attempts")
+  lastChargeError String?                @map("last_charge_error") @db.Text
+  startedAt    DateTime                  @default(now()) @map("started_at")
+  cancelledAt  DateTime?                 @map("cancelled_at")
+  metadata     Json?
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
+
+  user         User?                     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  campaign     Campaign?                 @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([status, nextChargeAt], map: "recurring_donation_status_next_charge_idx")
 }
 
 model Action {
@@ -321,4 +423,166 @@ model PartnershipInquiry {
   metadata      Json?
   createdAt     DateTime                 @default(now()) @map("created_at")
   updatedAt     DateTime                 @updatedAt @map("updated_at")
+}
+
+model SupporterConsent {
+  id          String   @id @default(cuid())
+  email       String   @unique @db.VarChar(255)
+  emailOptIn  Boolean  @default(true) @map("email_opt_in")
+  smsOptIn    Boolean  @default(false) @map("sms_opt_in")
+  source      String?  @db.VarChar(128)
+  note        String?  @db.Text
+  updatedBy   String?  @map("updated_by") @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+}
+
+model RetentionMessageOutbox {
+  id           String                 @id @default(cuid())
+  triggerKey   RetentionTriggerKey    @map("trigger_key")
+  channel      RetentionMessageChannel @default(EMAIL)
+  status       RetentionMessageStatus @default(PENDING)
+  toEmail      String                 @map("to_email") @db.VarChar(255)
+  templateKey  String?                @map("template_key") @db.VarChar(128)
+  subject      String?                @db.VarChar(255)
+  payload      Json?
+  scheduledFor DateTime?              @map("scheduled_for")
+  attempts     Int                    @default(0)
+  maxAttempts  Int                    @default(3) @map("max_attempts")
+  lastError    String?                @map("last_error") @db.Text
+  sentAt       DateTime?              @map("sent_at")
+  createdAt    DateTime               @default(now()) @map("created_at")
+  updatedAt    DateTime               @updatedAt @map("updated_at")
+
+  logs         RetentionMessageDeliveryLog[]
+
+  @@index([status, scheduledFor], map: "retention_outbox_status_schedule_idx")
+  @@index([triggerKey, createdAt], map: "retention_outbox_trigger_created_idx")
+}
+
+model RetentionMessageDeliveryLog {
+  id          String                 @id @default(cuid())
+  outboxId    String                 @map("outbox_id")
+  status      RetentionMessageStatus
+  provider    String?                @db.VarChar(128)
+  providerRef String?                @map("provider_ref") @db.VarChar(255)
+  message     String?                @db.Text
+  metadata    Json?
+  createdAt   DateTime               @default(now()) @map("created_at")
+
+  outbox      RetentionMessageOutbox @relation(fields: [outboxId], references: [id], onDelete: Cascade)
+
+  @@index([outboxId, createdAt], map: "retention_delivery_log_outbox_created_idx")
+}
+
+model RetentionTemplate {
+  id          String                  @id @default(cuid())
+  triggerKey  RetentionTriggerKey     @map("trigger_key")
+  channel     RetentionMessageChannel @default(EMAIL)
+  version     Int
+  subject     String?                 @db.VarChar(255)
+  body        String                  @db.Text
+  isActive    Boolean                 @default(false) @map("is_active")
+  createdBy   String?                 @map("created_by") @db.VarChar(255)
+  createdAt   DateTime                @default(now()) @map("created_at")
+  updatedAt   DateTime                @updatedAt @map("updated_at")
+
+  @@unique([triggerKey, channel, version], map: "retention_template_trigger_channel_version_uq")
+  @@index([triggerKey, channel, isActive], map: "retention_template_lookup_idx")
+}
+
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  area       String   @db.VarChar(64)
+  action     String   @db.VarChar(128)
+  actorEmail String?  @map("actor_email") @db.VarChar(255)
+  entityType String?  @map("entity_type") @db.VarChar(64)
+  entityId   String?  @map("entity_id") @db.VarChar(255)
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([area, createdAt], map: "admin_audit_area_created_idx")
+}
+
+model ShopProduct {
+  id          String            @id @default(cuid())
+  title       String            @db.VarChar(255)
+  slug        String            @unique @db.VarChar(320)
+  description String            @db.LongText
+  category    String?           @db.VarChar(128)
+  imageUrl    String?           @map("image_url") @db.VarChar(1024)
+  status      ShopProductStatus @default(DRAFT)
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  variants    ShopProductVariant[]
+  orderItems  ShopOrderItem[]
+}
+
+model ShopProductVariant {
+  id              String            @id @default(cuid())
+  productId       String            @map("product_id")
+  sku             String            @unique @db.VarChar(128)
+  title           String            @db.VarChar(255)
+  optionLabel     String?           @map("option_label") @db.VarChar(255)
+  price           Decimal           @db.Decimal(14, 2)
+  compareAtPrice  Decimal?          @map("compare_at_price") @db.Decimal(14, 2)
+  inventoryQty    Int               @default(0) @map("inventory_qty")
+  inventoryStatus ShopInventoryStatus @default(IN_STOCK) @map("inventory_status")
+  isDefault       Boolean           @default(false) @map("is_default")
+  isActive        Boolean           @default(true) @map("is_active")
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  product         ShopProduct       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems      ShopOrderItem[]
+
+  @@index([productId, isActive], map: "shop_variant_product_active_idx")
+}
+
+model ShopOrder {
+  id                String               @id @default(cuid())
+  reference         String               @unique @db.VarChar(128)
+  userId            String?              @map("user_id")
+  customerEmail     String               @map("customer_email") @db.VarChar(255)
+  customerName      String               @map("customer_name") @db.VarChar(255)
+  customerPhone     String?              @map("customer_phone") @db.VarChar(64)
+  status            ShopOrderStatus      @default(PENDING)
+  paymentStatus     ShopPaymentStatus    @default(PENDING) @map("payment_status")
+  fulfillmentStatus ShopFulfillmentStatus @default(UNFULFILLED) @map("fulfillment_status")
+  paystackReference String?               @unique @map("paystack_reference") @db.VarChar(255)
+  paymentIntentId   String?               @map("payment_intent_id") @db.VarChar(255)
+  currency          String               @default("ZAR") @db.VarChar(8)
+  totalAmount       Decimal              @map("total_amount") @db.Decimal(14, 2)
+  shippingAddress   Json?                @map("shipping_address")
+  trackingRef       String?              @map("tracking_ref") @db.VarChar(255)
+  metadata          Json?
+  createdAt         DateTime             @default(now()) @map("created_at")
+  updatedAt         DateTime             @updatedAt @map("updated_at")
+
+  user              User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  items             ShopOrderItem[]
+
+  @@index([status, createdAt], map: "shop_order_status_created_idx")
+}
+
+model ShopOrderItem {
+  id            String            @id @default(cuid())
+  orderId       String            @map("order_id")
+  productId     String            @map("product_id")
+  variantId     String?           @map("variant_id")
+  productTitle  String            @map("product_title") @db.VarChar(255)
+  variantTitle  String?           @map("variant_title") @db.VarChar(255)
+  sku           String?           @db.VarChar(128)
+  unitPrice     Decimal           @map("unit_price") @db.Decimal(14, 2)
+  quantity      Int               @default(1)
+  lineTotal     Decimal           @map("line_total") @db.Decimal(14, 2)
+  metadata      Json?
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  order         ShopOrder         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product       ShopProduct       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant       ShopProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+
+  @@index([orderId, createdAt], map: "shop_order_item_order_created_idx")
 }

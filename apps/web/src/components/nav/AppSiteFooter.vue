@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { en } from '@/locales/en'
+import { useLocaleText } from '@/composables/useLocaleText'
+
+const { t } = useLocaleText()
 
 const socialLinks = [
   { name: 'X', href: 'https://x.com/jbaybff', active: true },
@@ -20,62 +22,62 @@ const campaignPartners = [
       <div class="rounded-3xl border border-white/15 bg-white/[0.04] p-6 shadow-wave sm:p-8">
         <div class="grid gap-10 lg:grid-cols-[1.1fr,1fr]">
           <div class="space-y-4">
-            <p class="font-display text-3xl text-bff-aqua">{{ en.tagline }}</p>
+            <p class="font-display text-3xl text-bff-aqua">{{ t('tagline') }}</p>
             <p class="max-w-xl text-white/85">
-              Protecting and enjoying Jeffreys Bay’s coast through campaigns, events, and community action.
+              {{ t('footerProtecting') }}
             </p>
             <div class="grid max-w-xl gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <div class="rounded-xl bg-white/8 px-3 py-3 text-center">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">Starter</p>
+                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">{{ t('footerStarter') }}</p>
                 <p class="mt-1 font-semibold">R100/mo</p>
               </div>
               <div class="rounded-xl bg-white/8 px-3 py-3 text-center">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">Steward</p>
+                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">{{ t('footerSteward') }}</p>
                 <p class="mt-1 font-semibold">R200/mo</p>
               </div>
               <div class="rounded-xl bg-white/8 px-3 py-3 text-center">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">Guardian</p>
+                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">{{ t('footerGuardian') }}</p>
                 <p class="mt-1 font-semibold">R500/mo</p>
               </div>
               <div class="rounded-xl bg-white/8 px-3 py-3 text-center">
-                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">Champion</p>
+                <p class="text-[11px] uppercase tracking-[0.16em] text-bff-aqua">{{ t('footerChampion') }}</p>
                 <p class="mt-1 font-semibold">R1000/mo</p>
               </div>
             </div>
             <div class="flex flex-wrap gap-3">
-              <RouterLink class="bff-button-primary" to="/campaigns">Donate</RouterLink>
-              <RouterLink class="rounded-full border border-white/35 px-5 py-2.5 font-semibold hover:bg-white/10" to="/actions">Take Action</RouterLink>
+              <RouterLink class="bff-button-primary" to="/campaigns">{{ t('navDonate') }}</RouterLink>
+              <RouterLink class="rounded-full border border-white/35 px-5 py-2.5 font-semibold hover:bg-white/10" to="/actions">{{ t('navActions') }}</RouterLink>
             </div>
           </div>
 
           <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div>
-              <h3 class="font-semibold uppercase tracking-[0.2em] text-bff-aqua/90">Learn</h3>
+              <h3 class="font-semibold uppercase tracking-[0.2em] text-bff-aqua/90">{{ t('navLearn') }}</h3>
               <ul class="mt-3 space-y-2">
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/about">{{ en.navAbout }}</RouterLink></li>
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/campaigns">{{ en.navCampaigns }}</RouterLink></li>
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/blog">News</RouterLink></li>
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/impact">Impact</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/about">{{ t('navAbout') }}</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/campaigns">{{ t('navCampaigns') }}</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/blog">{{ t('navNews') }}</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/impact">{{ t('navImpact') }}</RouterLink></li>
               </ul>
             </div>
 
             <div>
-              <h3 class="font-semibold uppercase tracking-[0.2em] text-bff-aqua/90">Get Involved</h3>
+              <h3 class="font-semibold uppercase tracking-[0.2em] text-bff-aqua/90">{{ t('navGetInvolved') }}</h3>
               <ul class="mt-3 space-y-2">
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/actions">Take Action</RouterLink></li>
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/events">Events</RouterLink></li>
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/contact">Volunteer</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/actions">{{ t('navActions') }}</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/events">{{ t('navEvents') }}</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/contact">{{ t('navVolunteer') }}</RouterLink></li>
               </ul>
             </div>
 
             <div>
-              <h3 class="font-semibold uppercase tracking-[0.2em] text-bff-aqua/90">Campaign Partners</h3>
+              <h3 class="font-semibold uppercase tracking-[0.2em] text-bff-aqua/90">{{ t('footerCampaignPartners') }}</h3>
               <ul class="mt-3 space-y-2">
-                <li><RouterLink class="underline-offset-4 hover:underline" to="/partnerships">Submit a partnership inquiry</RouterLink></li>
+                <li><RouterLink class="underline-offset-4 hover:underline" to="/partnerships">{{ t('footerPartnerInquiry') }}</RouterLink></li>
                 <li v-for="partner in campaignPartners" :key="partner.name">
                   <a class="underline-offset-4 hover:underline" :href="partner.href" target="_blank" rel="noopener noreferrer">{{ partner.name }}</a>
                 </li>
-                <li class="text-white/70">More coming soon</li>
+                <li class="text-white/70">{{ t('footerMoreComing') }}</li>
               </ul>
             </div>
           </div>
@@ -117,7 +119,7 @@ const campaignPartners = [
             </div>
           </div>
           <a class="hover:text-bff-aqua" href="mailto:info@jbaybff.org.za">info@jbaybff.org.za</a>
-          <RouterLink class="hover:text-bff-aqua" to="/contact">Contact</RouterLink>
+          <RouterLink class="hover:text-bff-aqua" to="/contact">{{ t('navContact') }}</RouterLink>
         </div>
       </div>
     </div>

@@ -20,6 +20,8 @@ import { ActionsModule } from './modules/actions/actions.module';
 import { EventsModule } from './modules/events/events.module';
 import { ImpactModule } from './modules/impact/impact.module';
 import { PartnershipsModule } from './modules/partnerships/partnerships.module';
+import { RetentionModule } from './modules/retention/retention.module';
+import { ShopModule } from './modules/shop/shop.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { PartnershipsModule } from './modules/partnerships/partnerships.module';
     EventsModule,
     ImpactModule,
     PartnershipsModule,
+    RetentionModule,
+    ShopModule,
   ],
   providers: [
     {

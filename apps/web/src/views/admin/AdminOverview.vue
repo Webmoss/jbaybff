@@ -36,9 +36,17 @@ import { RouterLink } from 'vue-router'
         <p class="text-lg font-semibold">Partnerships</p>
         <p class="mt-5 text-[14px] text-bff-blue-grey">Pipeline and inquiry review</p>
       </RouterLink>
+      <RouterLink class="rounded-3xl border border-black/[0.08] bg-white p-10 shadow-wave hover:border-bff-aqua transition" :to="{ name: 'admin-retention' }">
+        <p class="text-lg font-semibold">Retention</p>
+        <p class="mt-5 text-[14px] text-bff-blue-grey">Outbox, consent, and dispatch health</p>
+      </RouterLink>
       <RouterLink class="rounded-3xl border border-black/[0.08] bg-white p-10 shadow-wave hover:border-bff-aqua transition" :to="{ name: 'admin-impact' }">
         <p class="text-lg font-semibold">Impact</p>
         <p class="mt-5 text-[14px] text-bff-blue-grey">KPI and conversion analytics</p>
+      </RouterLink>
+      <RouterLink class="rounded-3xl border border-black/[0.08] bg-white p-10 shadow-wave hover:border-bff-aqua transition" :to="{ name: 'admin-shop' }">
+        <p class="text-lg font-semibold">Shop</p>
+        <p class="mt-5 text-[14px] text-bff-blue-grey">Catalog, inventory, and order fulfillment</p>
       </RouterLink>
     </nav>
   </section>

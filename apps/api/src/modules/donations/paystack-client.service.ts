@@ -12,6 +12,14 @@ type InitializePayload = {
   metadata: Record<string, string>;
 };
 
+type ChargeAuthorizationPayload = {
+  email: string;
+  amountCents: number;
+  authorizationCode: string;
+  reference: string;
+  metadata: Record<string, string>;
+};
+
 @Injectable()
 export class PaystackClientService {
   constructor(private readonly cfg: ConfigService) {}
@@ -74,6 +82,10 @@ export class PaystackClientService {
     currency: string;
     status: string;
     id?: string;
+    authorizationCode?: string;
+    customerCode?: string;
+    paidAt?: string;
+    metadata?: Record<string, unknown>;
   }> {
     const res = await fetch(`${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
       headers: { Authorization: `Bearer ${this.secret()}` },
@@ -82,7 +94,16 @@ export class PaystackClientService {
     const json = (await res.json()) as {
       status?: boolean;
       message?: string;
-      data?: { status?: string; amount?: number; currency?: string; id?: number };
+      data?: {
+        status?: string;
+        amount?: number;
+        currency?: string;
+        id?: number;
+        paid_at?: string;
+        metadata?: Record<string, unknown>;
+        authorization?: { authorization_code?: string };
+        customer?: { customer_code?: string };
+      };
     };
 
     if (!res.ok || !json.status || !json.data) {
@@ -96,6 +117,55 @@ export class PaystackClientService {
       currency: d.currency ?? 'ZAR',
       status: d.status ?? 'unknown',
       id: d.id !== undefined ? String(d.id) : undefined,
+      authorizationCode: d.authorization?.authorization_code,
+      customerCode: d.customer?.customer_code,
+      paidAt: d.paid_at,
+      metadata: d.metadata,
+    };
+  }
+
+  async chargeAuthorization(payload: ChargeAuthorizationPayload): Promise<{
+    ok: boolean;
+    status: string;
+    id?: string;
+    reference?: string;
+    message?: string;
+  }> {
+    const res = await fetch(`${PAYSTACK_BASE}/transaction/charge_authorization`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.secret()}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: payload.email,
+        amount: String(payload.amountCents),
+        authorization_code: payload.authorizationCode,
+        reference: payload.reference,
+        metadata: payload.metadata,
+      }),
+    });
+
+    const json = (await res.json()) as {
+      status?: boolean;
+      message?: string;
+      data?: { status?: string; id?: number; reference?: string };
+    };
+
+    if (!res.ok || !json.status || !json.data) {
+      return {
+        ok: false,
+        status: 'failed',
+        message: json.message ?? `Paystack charge failed (${res.status})`,
+      };
+    }
+
+    return {
+      ok: json.data.status === 'success',
+      status: json.data.status ?? 'unknown',
+      id: json.data.id !== undefined ? String(json.data.id) : undefined,
+      reference: json.data.reference,
+      message: json.message,
     };
   }
 }
