@@ -1,0 +1,324 @@
+// Jeffreys Bay Blue Flag Foundation — MySQL-first for Xneelo shared hosting compatibility
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  DONOR
+  SPONSOR
+}
+
+enum CampaignStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ActionType {
+  PETITION
+  PLEDGE
+  EMAIL
+  VOLUNTEER
+}
+
+enum ActionStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+  CANCELLED
+}
+
+enum VolunteerStatus {
+  REGISTERED
+  WAITLISTED
+  CHECKED_IN
+  CANCELLED
+}
+
+enum PartnershipType {
+  CORPORATE
+  SCHOOL
+  CLUB
+  NGO
+  OTHER
+}
+
+enum PartnershipInquiryStatus {
+  NEW
+  IN_REVIEW
+  APPROVED
+  DECLINED
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255)
+  name      String   @db.VarChar(255)
+  role      UserRole @default(DONOR)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  sponsor   SponsorProfile?
+  donations Donation[]
+  actionSubmissions ActionSubmission[]
+  volunteerRsvps VolunteerRsvp[]
+  kpiEvents KpiEvent[]
+}
+
+model SponsorProfile {
+  id          String @id @default(cuid())
+  userId      String @unique @map("user_id")
+  companyName String @map("company_name") @db.VarChar(255)
+  logoUrl     String? @map("logo_url") @db.VarChar(1024)
+  description String? @db.Text
+  website     String? @db.VarChar(1024)
+
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaigns CampaignOnSponsors[]
+}
+
+model Campaign {
+  id              String           @id @default(cuid())
+  title           String           @db.VarChar(512)
+  slug            String           @unique @db.VarChar(320)
+  description     String           @db.Text
+  imageUrl        String?          @map("image_url") @db.VarChar(1024)
+  fundingGoal     Decimal?         @map("funding_goal") @db.Decimal(14, 2)
+  raisedAmount    Decimal          @default(0) @map("raised_amount") @db.Decimal(14, 2)
+  status          CampaignStatus   @default(DRAFT)
+  featured        Boolean          @default(false)
+
+  metaTitle       String?          @map("meta_title") @db.VarChar(255)
+  metaDescription String?          @map("meta_description") @db.VarChar(512)
+  ogImageUrl      String?          @map("og_image_url") @db.VarChar(1024)
+
+  published       Boolean          @default(false)
+  publishedAt     DateTime?        @map("published_at")
+
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  sponsors CampaignOnSponsors[]
+  donations Donation[]
+  actions Action[]
+  events CommunityEvent[]
+  kpiEvents KpiEvent[]
+}
+
+model CampaignOnSponsors {
+  campaignId String @map("campaign_id")
+  sponsorId  String @map("sponsor_id")
+
+  campaign Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  sponsor  SponsorProfile @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+
+  @@id([campaignId, sponsorId])
+}
+
+model BlogCategory {
+  id    String @id @default(cuid())
+  name  String @db.VarChar(255)
+  slug  String @unique @db.VarChar(320)
+
+  posts BlogPost[]
+}
+
+model Tag {
+  id    String @id @default(cuid())
+  name  String @db.VarChar(255)
+  slug  String @unique @db.VarChar(320)
+
+  posts BlogPostOnTags[]
+}
+
+model BlogPost {
+  id              String  @id @default(cuid())
+  title           String  @db.VarChar(512)
+  slug            String  @unique @db.VarChar(320)
+  excerpt         String? @db.VarChar(1024)
+  content         String  @db.LongText // rich HTML from editor
+  published       Boolean @default(false)
+  publishedAt     DateTime? @map("published_at")
+
+  metaTitle       String? @map("meta_title") @db.VarChar(255)
+  metaDescription String? @map("meta_description") @db.VarChar(512)
+  ogTitle         String? @map("og_title") @db.VarChar(255)
+  ogDescription   String? @map("og_description") @db.VarChar(512)
+  ogImageUrl      String? @map("og_image_url") @db.VarChar(1024)
+
+  categoryId      String?  @map("category_id")
+  category        BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  tags            BlogPostOnTags[]
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+}
+
+model BlogPostOnTags {
+  postId String @map("post_id")
+  tagId  String @map("tag_id")
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+}
+
+model Donation {
+  id                 String         @id @default(cuid())
+  /** Logged-in donor; null when checkout is guest (see donorEmail). */
+  userId             String?        @map("user_id")
+  donorEmail         String?        @map("donor_email") @db.VarChar(255)
+  donorName          String?        @map("donor_name") @db.VarChar(255)
+  amount             Decimal        @db.Decimal(14, 2)
+  currency           String         @default("ZAR") @db.VarChar(8)
+  campaignId         String?        @map("campaign_id")
+  /** Paystack transaction id (numeric as string) once completed — legacy column name. */
+  paymentIntentId    String?        @map("payment_intent_id") @db.VarChar(512)
+  /** Client reference sent to Paystack initialize (`reference` field). */
+  paystackReference  String?        @unique @map("paystack_reference") @db.VarChar(255)
+  status             DonationStatus @default(PENDING)
+  metadata           Json?
+  createdAt          DateTime       @default(now()) @map("created_at")
+
+  user     User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+}
+
+model Action {
+  id          String       @id @default(cuid())
+  title       String       @db.VarChar(255)
+  slug        String       @unique @db.VarChar(255)
+  summary     String?      @db.VarChar(1024)
+  description String       @db.LongText
+  type        ActionType   @default(PLEDGE)
+  status      ActionStatus @default(DRAFT)
+  targetUrl   String?      @map("target_url") @db.VarChar(1024)
+  startsAt    DateTime?    @map("starts_at")
+  endsAt      DateTime?    @map("ends_at")
+  published   Boolean      @default(false)
+  campaignId  String?      @map("campaign_id")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  campaign    Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  submissions ActionSubmission[]
+  kpiEvents   KpiEvent[]
+}
+
+model ActionSubmission {
+  id         String   @id @default(cuid())
+  actionId   String   @map("action_id")
+  userId     String?  @map("user_id")
+  email      String?  @db.VarChar(255)
+  name       String?  @db.VarChar(255)
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  action Action @relation(fields: [actionId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model Chapter {
+  id           String   @id @default(cuid())
+  name         String   @db.VarChar(255)
+  slug         String   @unique @db.VarChar(255)
+  zone         String?  @db.VarChar(255)
+  description  String?  @db.Text
+  contactEmail String?  @map("contact_email") @db.VarChar(255)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  events CommunityEvent[]
+}
+
+model CommunityEvent {
+  id          String      @id @default(cuid())
+  title       String      @db.VarChar(255)
+  slug        String      @unique @db.VarChar(255)
+  description String      @db.Text
+  location    String      @db.VarChar(512)
+  startsAt    DateTime    @map("starts_at")
+  endsAt      DateTime?   @map("ends_at")
+  capacity    Int?
+  status      EventStatus @default(DRAFT)
+  published   Boolean     @default(false)
+  chapterId   String?     @map("chapter_id")
+  campaignId  String?     @map("campaign_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  chapter  Chapter?       @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  campaign Campaign?      @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  rsvps    VolunteerRsvp[]
+}
+
+model VolunteerRsvp {
+  id          String          @id @default(cuid())
+  eventId      String         @map("event_id")
+  userId       String?        @map("user_id")
+  email        String         @db.VarChar(255)
+  name         String         @db.VarChar(255)
+  status       VolunteerStatus @default(REGISTERED)
+  checkedInAt  DateTime?      @map("checked_in_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+
+  event CommunityEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+model KpiEvent {
+  id        String   @id @default(cuid())
+  eventName String   @map("event_name") @db.VarChar(255)
+  path      String?  @db.VarChar(1024)
+  userId    String?  @map("user_id")
+  actionId  String?  @map("action_id")
+  campaignId String? @map("campaign_id")
+  sessionId String?  @map("session_id") @db.VarChar(255)
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action  Action?  @relation(fields: [actionId], references: [id], onDelete: SetNull)
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+}
+
+model PartnershipInquiry {
+  id            String                   @id @default(cuid())
+  organization  String                   @db.VarChar(255)
+  contactName   String                   @map("contact_name") @db.VarChar(255)
+  contactEmail  String                   @map("contact_email") @db.VarChar(255)
+  contactPhone  String?                  @map("contact_phone") @db.VarChar(64)
+  website       String?                  @db.VarChar(1024)
+  type          PartnershipType          @default(CORPORATE)
+  message       String?                  @db.Text
+  pledgeAmount  Decimal?                 @map("pledge_amount") @db.Decimal(14, 2)
+  status        PartnershipInquiryStatus @default(NEW)
+  reviewedBy    String?                  @map("reviewed_by") @db.VarChar(255)
+  reviewedAt    DateTime?                @map("reviewed_at")
+  notes         String?                  @db.Text
+  metadata      Json?
+  createdAt     DateTime                 @default(now()) @map("created_at")
+  updatedAt     DateTime                 @updatedAt @map("updated_at")
+}

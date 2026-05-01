@@ -1,32 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "target": "ES2022",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [{ "name": "next" }],
-    "paths": {
-      "@/*": ["./src/*"],
-      "@jbaybff/config": ["../../libs/config/src/index.ts"],
-      "@jbaybff/config/*": ["../../libs/config/src/*"],
-      "@jbaybff/prisma": ["../../libs/prisma/src/index.ts"],
-      "@jbaybff/prisma/*": ["../../libs/prisma/src/*"],
-      "@jbaybff/types": ["../../libs/types/src/index.ts"],
-      "@jbaybff/ui": ["../../libs/ui/src/index.ts"],
-      "@jbaybff/ui/*": ["../../libs/ui/src/*"]
-    }
-  },
-  "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", ".next"]
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ]
 }

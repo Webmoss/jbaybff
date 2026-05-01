@@ -1,62 +1,38 @@
-# dependencies
+.DS_Store
 node_modules
-.pnpm-store
-
-# nx
-.nx/cache
-.nx/workspace-data
-
-# next.js
+**/node_modules
+dist
+build
 .next
 out
-
-# production
-build
-dist
-
-# typescript
+.turbo
+# Environment files (keep examples tracked)
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.example
+*.log
+coverage
 *.tsbuildinfo
 
-# testing
-coverage
-
-# misc
-.DS_Store
-*.pem
-*.log
+# Editor / IDE
 .idea
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
+# Package manager / caches
+.pnpm-store
+.nx/cache
+.nx/workspace-data
 
-# env files (do NOT commit these)
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.*.local
-
-# prisma
-libs/prisma/prisma/migrations/dev.db*
-libs/prisma/prisma/.tmp
-libs/prisma/prisma/*.db
-libs/prisma/prisma/*.db-journal
-
-# pm2
+# Runtime artifacts
 logs/
 *.pid
-ecosystem.config.local.cjs
+*.seed
 
-# generated
-libs/prisma/src/generated/
-
-# build artifacts for xneelo deploy bundle
-.xneelo-build/
-deploy-artifact-*.tar.gz
+# App artifacts
+uploads/
+apps/api/dist
+apps/web/dist

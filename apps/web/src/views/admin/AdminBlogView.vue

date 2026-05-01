@@ -1,0 +1,193 @@
+<script setup lang="ts">
+import { computed, ref } from 'vue'
+import { api } from '@/services/api'
+import RichTextEditor from '@/components/editor/RichTextEditor.vue'
+
+type Category = { id: string; name: string }
+
+type Post = {
+  id: string
+  title: string
+  slug: string
+  published: boolean
+  excerpt: string | null
+  content?: string | null
+  metaTitle?: string | null
+  metaDescription?: string | null
+}
+
+const rows = ref<Post[]>([])
+const cats = ref<Category[]>([])
+const activeId = ref<string | null>(null)
+
+const composer = ref({
+  title: 'Coastal stewardship note',
+  excerpt: '',
+  metaTitle: '',
+  metaDescription: '',
+  html: '<p>Add depth for readers…</p>',
+  categoryId: '' as string,
+  published: false,
+})
+
+const active = computed(() => rows.value.find((p) => p.id === activeId.value) ?? null)
+
+async function bootstrap() {
+
+  cats.value = (await api.get<Category[]>('/blog/public/categories')).data
+
+  rows.value = (await api.get<Post[]>('/blog/admin/posts')).data
+
+}
+
+;(async () => bootstrap())()
+
+
+function hydrateFromPost(p: Post) {
+
+
+
+  activeId.value = p.id
+
+
+
+  composer.value = {
+
+
+
+
+
+
+    title: p.title,
+
+    excerpt: p.excerpt ?? '',
+    metaTitle: p.metaTitle ?? '',
+    metaDescription: p.metaDescription ?? '',
+
+
+
+
+    html: p.content ?? '<p></p>',
+
+
+    categoryId: '',
+
+
+
+
+    published: p.published,
+
+
+
+
+
+
+  }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async function save() {
+
+
+
+
+
+
+  const body = {
+
+
+    title: composer.value.title,
+
+
+    excerpt: composer.value.excerpt || undefined,
+
+
+    content: composer.value.html,
+
+
+    published: composer.value.published,
+
+
+
+
+
+    metaTitle: composer.value.metaTitle || undefined,
+
+
+
+
+
+
+    metaDescription: composer.value.metaDescription || undefined,
+
+    categoryId: composer.value.categoryId || undefined,
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  if (activeId.value) {
+
+
+
+    await api.patch(`/blog/admin/posts/${encodeURIComponent(activeId.value)}`, body)
+
+
+
+  } else {
+
+
+    await api.post(`/blog/admin/posts`, body)
+
+
+
+  }
+
+
+
+
+
+  rows.value = (await api.get<Post[]>('/blog/admin/posts')).data
+
+
+
+
+}

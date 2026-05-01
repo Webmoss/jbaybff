@@ -1,139 +1,60 @@
-# JBay BFF — Jeffreys Bay Blue Flag Foundation
+# Jeffreys Bay Blue Flag Foundation (JBay BFF)
 
-Monorepo for the Jeffreys Bay Blue Flag Foundation digital platform.
+Vue 3 SPA (`apps/web`) + NestJS API (`apps/api`), Prisma/MySQL-first database, JWT + RBAC (`ADMIN · DONOR · SPONSOR`), campaigns + sponsors + TipTap-backed blog CMS fields, hashed passwords, throttle + helmet protections, SPA-friendly sitemap at `/api/seo/sitemap.xml`.
 
-> **Mission:** Earn and keep Blue Flag status for Jeffreys Bay through cleanups,
-> education, water-quality monitoring, and bold community action.
-
-## What's in here
-
-```text
-jbaybff/
-├── apps/
-│   ├── web/          → Public site (Next.js 14 App Router)
-│   └── admin/        → Admin dashboard (Next.js 14 App Router)
-├── libs/
-│   ├── prisma/       → Single source of truth for the data model + Prisma client
-│   ├── ui/           → Design tokens (palette, typography, motifs) + shared components
-│   ├── config/       → Zod-validated env config (server + client splits)
-│   └── types/        → Cross-package domain types
-├── tools/
-│   └── deploy/       → Xneelo deployment artifacts (PM2, Nginx, Apache, build script)
-├── ecosystem.config.cjs   → PM2 ecosystem (production)
-├── nx.json                → NX workspace config
-├── pnpm-workspace.yaml    → pnpm workspace declaration
-└── tsconfig.base.json     → Shared TS paths + compiler options
-```
-
-## Tech stack
-
-- **Monorepo** — NX 20 + pnpm workspaces
-- **Apps** — Next.js 14 (App Router, standalone output)
-- **UI** — Tailwind v3 with a shared preset, shadcn/ui-ready CSS variables
-- **DB** — MySQL (Xneelo cPanel default) via Prisma 5; Postgres-swappable
-- **Payments** — Paystack (ZAR + intl. cards) — wired in Step 3
-- **PDFs** — `react-pdf`-based SARS Section 18A tax certificates — Step 3
-- **Email** — nodemailer over Xneelo SMTP — Step 4
-- **Deploy** — PM2 cluster behind Nginx (VPS) or Apache `.htaccess` proxy (cPanel)
-
-## Quick start (local dev)
+## Bootstrap (host machine)
 
 ```bash
-# 1. Install deps (pnpm 10+ required)
-pnpm install
-
-# 2. Spin up a local MySQL (or use Docker / Xneelo dev DB)
-#    Then copy and edit env vars
 cp .env.example .env
-$EDITOR .env
 
-# 3. Generate Prisma client + run migrations
-pnpm prisma:migrate     # creates the first migration
-pnpm prisma:seed        # seeds fund allocations + admin user
-
-# 4. Run both apps
-pnpm dev                # web on :3000, admin on :3001
-# or run them individually
-pnpm dev:web
-pnpm dev:admin
+docker compose up -d mysql
+pnpm install
+pnpm --filter api prisma:push
+pnpm db:seed
+pnpm dev   # SPA on :5173, API :3000 (/api prefix)
 ```
 
-Visit:
-- Public site → http://localhost:3000
-- Admin → http://localhost:3001
-- Health probes → `/api/health` on each
+`SITE_URL` in root `.env` anchors absolute URLs emitted by `/api/seo/sitemap.xml`. Multi-language scaffolding starts in `apps/web/src/locales/en.ts` (promote later to `vue-i18n`).  
 
-## Step plan (we are here: Step 1)
+### Required root `.env` keys
 
-| Step | Status | Scope |
-|------|--------|-------|
-| **1. Foundation**       | ✅ done | NX workspace, libs (`prisma`, `ui`, `config`, `types`), Next.js scaffolds, design tokens, Xneelo deployment toolkit. |
-| **2. Public site UI**   | ⏳ next | Transparent-to-solid mega menu, hero with motifs, campaigns page, fund-allocation visualisation, idea-board UI, blog reader, SEO renderer. |
-| **3. Donations + 18A**  | ⏳      | Paystack widget, donor capture, tier-1 gift trigger, SARS Section 18A PDF generator + admin certificate management. |
-| **4. Admin platform**   | ⏳      | Admin auth, CMS CRUD (Posts, Campaigns), e-commerce (Products, Orders), idea-board moderation, dashboard metrics + charts. |
-| **5. Notifications**    | ⏳      | nodemailer transactional emails, newsletter provider sync (Mailchimp / Brevo), audit logs, webhooks. |
+At minimum, set these before running locally:
 
-## Common scripts
+- `DATABASE_URL` (host run; usually `127.0.0.1`)
+- `DATABASE_URL_DOCKER` (container network; host is `mysql`)
+- `JWT_SECRET`
+- `CORS_ORIGIN`
+- `SITE_URL`
+- `VITE_API_URL`
+- `VITE_ASSET_BASE`
+- `PAYSTACK_SECRET_KEY`
+- `PAYSTACK_PUBLIC_KEY`
+- `PAYSTACK_CALLBACK_URL`
+
+Start from `.env.example` and adjust values for your machine.
+
+## Bootstrap (Docker: web + api + mysql)
 
 ```bash
-pnpm dev                  # run web + admin in parallel
-pnpm build                # build everything
-pnpm typecheck            # tsc --noEmit across the workspace
-pnpm lint                 # eslint everything
-pnpm format               # prettier write
-pnpm prisma:studio        # GUI for the DB
-pnpm prisma:migrate       # interactive migration during dev
-pnpm graph                # NX project graph
-
-# Deploy
-pnpm deploy:build         # produces .xneelo-build/
-node tools/deploy/xneelo-build.mjs --tar    # also tarball it
+cp .env.example .env
+docker compose up --build
 ```
 
-## Deployment
+Open `http://localhost:5173` for the SPA.
 
-See [`tools/deploy/XNEELO_DEPLOYMENT.md`](./tools/deploy/XNEELO_DEPLOYMENT.md)
-for the full walkthrough — provisioning the box, building the artifact,
-running migrations, configuring PM2, wiring Nginx or Apache, and
-zero-downtime updates.
+Root `.env` is the single source of config for both Docker and direct runs.
 
-## Design language
+Useful commands:
 
-The aesthetic is encoded in `libs/ui/src/tokens/`:
+```bash
+# one-time seed
+docker compose exec api pnpm --filter api prisma:seed
 
-- **`colors.ts`** — Deep Ocean Blue (#0F4C75), Teal (#138278), Coral Red (#D23B26),
-  Cream (#FBF6E9), Sun (#F2C94C). All exposed as both raw hex and HSL
-  CSS variables for shadcn/ui compatibility.
-- **`typography.ts`** — Display: Archivo Black (chunky geometric).
-  Body: Inter. Mono: JetBrains Mono.
-- **`motifs.ts`** — Manifest of the beach iconography (wave, surfboard,
-  palm tree, spiral shell, sun, fish, bird, coral, SURF wordmark) with
-  default brand colours and recommended usage contexts. SVG implementations
-  ship in Step 2.
+# stop containers
+docker compose down
 
-Both apps consume the same Tailwind preset (`@jbaybff/ui/tailwind-preset`)
-so colours, fonts, and animations stay in lockstep across surfaces.
+# full reset including MySQL data
+docker compose down -v
+```
 
-## Environment variables
-
-See `.env.example` at the repo root for the full list with inline docs.
-Validation is centralised in `libs/config/src/server.ts` (Zod) — invalid
-or missing required vars throw at process boot rather than silently
-producing 500s in production.
-
-## Legal & compliance notes
-
-- **SARS Section 18A**: tax certificate generation is implemented in
-  Step 3 with PDF outputs stored under `STORAGE_DIR` (defaults to
-  `./storage/tax-certificates`). Certificates capture an immutable
-  snapshot of donor + organisation details at issue time so reprints
-  don't drift if the live data changes.
-- **POPIA**: donor consent flags (`consentMailingList`, `consentMailingAt`,
-  `unsubscribedAt`) are tracked in the `donors` table. Idea board
-  submissions hash IPs rather than storing raw addresses.
-- **Audit trail**: every mutation in the admin dashboard writes an
-  `AuditLog` row (Step 4).
-
-## Licence
-
-UNLICENSED — © Jeffreys Bay Blue Flag Foundation NPC.
+See **`DEPLOYMENT.md`** for Xneelo shared vs VPS rollout, Postgres optionality, SPA reverse-proxy recipes, Paystack flow, outbound email placeholders, analytics snippets.

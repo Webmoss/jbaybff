@@ -1,0 +1,60 @@
+<script setup lang="ts">
+import { onBeforeUnmount, watch } from 'vue'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
+import StarterKit from '@tiptap/starter-kit'
+
+const props = defineProps<{ modelValue: string }>()
+const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
+
+const editor = useEditor({
+  content: props.modelValue ?? '<p></p>',
+  extensions: [StarterKit],
+  editorProps: {
+    attributes: {
+      class: 'bff-editor min-h-[220px] focus:outline-none px-6 py-[1.9625rem] text-[17px]',
+    },
+  },
+  onUpdate({ editor }) {
+    emit('update:modelValue', editor.getHTML())
+  },
+})
+
+watch(
+  () => props.modelValue,
+  (next) => {
+    const html = editor.value?.getHTML()
+
+    const safe = typeof next === 'string' ? next : '<p></p>'
+
+    if (html !== safe && editor.value) editor.value.commands.setContent(safe || '<p></p>', false)
+
+  },
+
+)
+
+onBeforeUnmount(() => {
+  editor.value?.destroy()
+})
+
+const cmd = () => editor.value?.chain()
+
+function undo() {
+
+  editor.value?.chain().focus().undo().run()
+
+
+}
+
+function redo() {
+
+
+  editor.value?.chain().focus().redo().run()
+
+
+}
+
+```
+
+Wait need fix script - messed up stray backticks?
+
+I'll rewrite file cleanly

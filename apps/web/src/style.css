@@ -1,0 +1,105 @@
+@import 'tailwindcss';
+
+/* JBay BFF design tokens — ocean warmth */
+@theme {
+  --color-bff-deep: #023750;
+  --color-bff-blue-grey: #13788e;
+  --color-bff-aqua: #6acad7;
+  --color-bff-coral: #f47263;
+  --color-bff-sand: #dfd6c9;
+
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+  --font-accent: 'Caveat', cursive;
+  --font-body: Inter, ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-wave: 0 12px 40px -18px rgb(2 55 80 / 0.45);
+
+  --background-image-wave-line: radial-gradient(circle at 50% -20%, rgb(106 172 215 / 0.35), transparent 55%);
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth antialiased;
+  }
+  body {
+    font-family: var(--font-body);
+    @apply text-bff-deep;
+    background-color: #dfd6c9;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-bff-coral/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#dfd6c9];
+  }
+
+  button,
+  [role='button'],
+  a.bff-button-primary,
+  a.bff-button-secondary {
+    min-height: 44px;
+  }
+
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+
+  ::selection {
+    @apply bg-bff-aqua/40 text-bff-deep;
+  }
+}
+
+@layer utilities {
+  .glass-nav {
+    @apply border-b border-white/30 backdrop-blur-md;
+    background: linear-gradient(90deg, rgb(2 55 80 / 0.92), rgb(19 120 142 / 0.88));
+  }
+
+  .bff-top-utility {
+    @apply border-b border-bff-deep/8 bg-white/95 text-bff-deep;
+  }
+
+  .bff-main-nav {
+    @apply border-b border-white/20;
+    background: linear-gradient(90deg, rgb(2 55 80 / 0.96), rgb(19 120 142 / 0.92));
+  }
+
+  .bff-hero-swoosh {
+    background-image: var(--background-image-wave-line);
+    background-repeat: no-repeat;
+    background-position: center top;
+  }
+
+  .bff-shell-band {
+    @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-10;
+  }
+
+  .bff-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-bff-blue-grey;
+  }
+
+  .bff-h1 {
+    @apply font-display text-[2.35rem] leading-[1.04] tracking-tight sm:text-[3.35rem];
+  }
+
+  .bff-h2 {
+    @apply font-display text-[2rem] leading-[1.08] tracking-tight sm:text-[2.5rem];
+  }
+
+  .bff-card {
+    @apply rounded-3xl border border-black/[0.08] bg-white shadow-wave transition duration-200 hover:-translate-y-[1px] hover:shadow-[0_18px_42px_-20px_rgb(2_55_80_/_0.5)];
+  }
+
+  .bff-button-primary {
+    @apply inline-flex items-center rounded-full bg-bff-coral px-6 py-3 text-sm font-semibold text-bff-deep shadow-wave transition hover:brightness-95;
+  }
+
+  .bff-button-secondary {
+    @apply inline-flex items-center rounded-full border border-bff-deep/20 bg-white px-6 py-3 text-sm font-semibold text-bff-deep transition hover:bg-bff-sand/40;
+  }
+}
