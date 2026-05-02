@@ -44,7 +44,7 @@ async function rsvp(e: EventRow) {
 <template>
   <SectionPanel tone="white">
     <HeroBanner
-      kicker="Events"
+      kicker="Get involved"
       title="Join events near you"
       subtitle="Register for cleanups, awareness sessions, and community events across Jeffreys Bay."
     />

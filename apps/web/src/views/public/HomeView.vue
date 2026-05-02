@@ -53,8 +53,8 @@ onMounted(async () => {
   <div class="space-y-0">
     <SectionPanel tone="white">
       <HeroBanner
-        kicker="Featured campaign alert"
-        title="Your voice matters — help defend and restore Jeffreys Bay’s shoreline."
+        kicker="Urgent campaign"
+        title="Your voice matters — defend and restore Jeffreys Bay’s shoreline."
         subtitle="Join active coastal campaigns, local action, and volunteer events that keep beaches clean, accessible, and thriving."
       >
         <div class="mt-8 grid w-full gap-3 sm:inline-flex sm:w-auto sm:grid-cols-none sm:flex-wrap">
@@ -104,7 +104,7 @@ onMounted(async () => {
 
     <SectionPanel tone="aqua">
       <p class="bff-kicker">Get involved near you</p>
-      <h2 class="bff-h2 mt-2">Upcoming events</h2>
+      <h2 class="bff-h2 mt-2">Join upcoming events</h2>
       <div class="mt-8 bff-card px-6 py-6">
         <ul class="mt-2 space-y-3">
           <li v-for="e in events" :key="e.id" class="rounded-2xl bg-bff-sand/45 px-4 py-3">
@@ -118,7 +118,7 @@ onMounted(async () => {
 
     <SectionPanel tone="white">
       <p class="bff-kicker">Our impact</p>
-      <h2 class="bff-h2 mt-2">Efforts are paying off</h2>
+      <h2 class="bff-h2 mt-2">Our efforts are paying off</h2>
       <div v-if="impact" class="mt-8">
         <MetricStrip :metrics="metrics" />
         <div class="mt-6">
@@ -140,7 +140,8 @@ onMounted(async () => {
         <span v-for="s in sponsors.slice(0, 10)" :key="s.id" class="rounded-full border border-white/20 px-4 py-2 text-sm text-white/90">{{ s.companyName }}</span>
       </div>
       <div class="mt-10 flex flex-wrap gap-3">
-        <RouterLink class="bff-button-primary" to="/campaigns">Donate monthly</RouterLink>
+        <RouterLink class="bff-button-primary" to="/dashboard">Start membership</RouterLink>
+        <RouterLink class="rounded-full border border-white/35 px-6 py-3 font-semibold text-white hover:bg-white/10" to="/campaigns">Donate monthly</RouterLink>
         <RouterLink class="rounded-full border border-white/35 px-6 py-3 font-semibold text-white hover:bg-white/10" to="/actions">Support a campaign</RouterLink>
         <RouterLink class="rounded-full border border-white/35 px-6 py-3 font-semibold text-white hover:bg-white/10" to="/partnerships">Become a partner</RouterLink>
       </div>

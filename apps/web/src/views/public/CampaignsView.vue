@@ -35,9 +35,9 @@ const activeFilter = ref<'all' | 'sponsor'>('all')
 <template>
   <SectionPanel tone="white">
     <HeroBanner
-      kicker="Campaigns"
+      kicker="Our campaigns"
       title="Campaigns to protect waves, beaches, and coastal communities."
-      subtitle="Explore active stewardship campaigns and contribute where your support matters most."
+      subtitle="Explore active stewardship campaigns and back the work where your support matters most."
     >
       <div class="mt-7 grid w-full gap-3 sm:inline-flex sm:w-auto sm:flex-wrap">
         <button class="bff-button-secondary w-full justify-center sm:w-auto sm:justify-start" :class="activeFilter === 'all' ? '!bg-bff-deep !text-white' : ''" @click="activeFilter = 'all'">All campaigns</button>
