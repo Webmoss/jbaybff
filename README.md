@@ -36,6 +36,12 @@ Runs SPA on `:5173` and API on `:3000` (with `/api` prefix).
 
 Note: `apps/api` reads its local `.env` when started via `pnpm dev:api`/workspace scripts, so keep `apps/api/.env` in sync with root `.env` for local development.
 
+Useful health endpoints:
+
+- `GET /api/health` (service heartbeat + uptime metadata)
+- `GET /api/health/version` (service version + active environment)
+- `GET /api/health/ready` (readiness probe including database connectivity)
+
 ## Quick Start (Docker: Web + API + MySQL)
 
 ```bash

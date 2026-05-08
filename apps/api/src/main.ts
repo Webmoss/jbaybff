@@ -27,6 +27,9 @@ async function bootstrap() {
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
   console.log(`JBay BFF API listening on http://localhost:${port}/api`);
+  console.log(
+    `Health checks: http://localhost:${port}/api/health, /api/health/version, and /api/health/ready`,
+  );
 }
 
 bootstrap();
