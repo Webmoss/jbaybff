@@ -12,7 +12,6 @@ import { CampaignsModule } from './modules/campaigns/campaigns.module';
 import { SponsorsModule } from './modules/sponsors/sponsors.module';
 import { BlogModule } from './modules/blog/blog.module';
 import { DonationsModule } from './modules/donations/donations.module';
-import { UploadsModule } from './modules/uploads/uploads.module';
 import { HealthModule } from './modules/health/health.module';
 import { SitemapModule } from './modules/sitemap/sitemap.module';
 import { KpiModule } from './modules/kpi/kpi.module';
@@ -46,7 +45,6 @@ import { ShopModule } from './modules/shop/shop.module';
     SponsorsModule,
     BlogModule,
     DonationsModule,
-    UploadsModule,
     HealthModule,
     SitemapModule,
     KpiModule,

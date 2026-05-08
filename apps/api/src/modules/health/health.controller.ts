@@ -9,7 +9,20 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 export class HealthController {
   @Get()
   check() {
-    return { ok: true, service: 'jbaybff-api' };
+    return {
+      ok: true,
+      service: 'jbaybff-api',
+      timestamp: new Date().toISOString(),
+      uptimeSeconds: Math.floor(process.uptime()),
+    };
+  }
+
+  @Get('version')
+  version() {
+    return {
+      service: 'jbaybff-api',
+      version: process.env.npm_package_version ?? '0.1.0',
+    };
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

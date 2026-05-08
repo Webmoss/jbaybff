@@ -24,6 +24,7 @@ Stack: Vue 3 (`apps/web`), NestJS (`apps/api`), Prisma/MySQL, JWT RBAC, Paystack
 
 ```bash
 cp .env.example .env
+cp .env apps/api/.env
 docker compose up -d mysql
 pnpm install
 pnpm --filter api prisma:push
@@ -32,6 +33,8 @@ pnpm dev
 ```
 
 Runs SPA on `:5173` and API on `:3000` (with `/api` prefix).
+
+Note: `apps/api` reads its local `.env` when started via `pnpm dev:api`/workspace scripts, so keep `apps/api/.env` in sync with root `.env` for local development.
 
 ## Quick Start (Docker: Web + API + MySQL)
 
