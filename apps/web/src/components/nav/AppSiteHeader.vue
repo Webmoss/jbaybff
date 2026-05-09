@@ -60,6 +60,7 @@ function navLabel(key: string) {
           <div class="hidden sm:inline-flex">
             <select
               :value="locale.locale"
+              :aria-label="t('navLanguage')"
               class="rounded-full border border-bff-deep/20 bg-white/80 px-2 py-1 text-[11px] font-semibold text-bff-deep"
               @change="locale.setLocale(($event.target as HTMLSelectElement).value as 'en' | 'af')"
             >
@@ -80,7 +81,7 @@ function navLabel(key: string) {
     <div class="bff-main-nav text-white">
       <div class="bff-shell-band flex items-center justify-between gap-3 py-3 sm:gap-4 sm:py-4">
         <RouterLink class="flex min-w-0 items-center gap-2 sm:gap-3" to="/">
-          <JBayHeartLogo :size="38" />
+          <JBayHeartLogo :size="38" alt="" />
           <div class="min-w-0 leading-tight">
             <p class="truncate font-display text-base font-semibold tracking-tight sm:text-2xl">{{ t('brand') }}</p>
             <p class="hidden text-sm font-medium text-white/85 sm:block">{{ t('platformLabel') }}</p>
@@ -106,14 +107,27 @@ function navLabel(key: string) {
           <RouterLink to="/shop" class="hover:text-bff-aqua" :class="route.path.startsWith('/shop') ? 'text-bff-aqua' : ''">{{ t('navShop') }}</RouterLink>
         </nav>
 
-        <button class="rounded-full border border-white/35 px-4 py-2 text-sm font-semibold transition hover:bg-white/10 lg:hidden" @click="mobileOpen = !mobileOpen">
+        <button
+          class="rounded-full border border-white/35 px-4 py-2 text-sm font-semibold transition hover:bg-white/10 lg:hidden"
+          :aria-expanded="mobileOpen"
+          aria-controls="mobile-menu"
+          @click="mobileOpen = !mobileOpen"
+        >
           {{ t('navMenu') }}
         </button>
       </div>
 
       <!-- Mobile Menu Start -->
-      <div v-if="mobileOpen" class="bff-shell-band pb-4 lg:hidden">
-        <div class="rounded-2xl bg-white p-3 text-bff-deep shadow-wave">
+      <Transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="translate-y-1 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-1 opacity-0"
+      >
+        <div v-if="mobileOpen" id="mobile-menu" class="bff-shell-band pb-4 lg:hidden">
+          <div class="rounded-2xl bg-white p-3 text-bff-deep shadow-wave">
           <RouterLink
             v-for="item in [
               ['/', t('navHome')],
@@ -159,7 +173,8 @@ function navLabel(key: string) {
             </div>
           </div>
         </div>
-      </div>
+        </div>
+      </Transition>
       <!-- Mobile Menu End -->
     </div>
   </header>
